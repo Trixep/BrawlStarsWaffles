@@ -25,19 +25,32 @@
         align-items: flex-start;
       }
 
+      /* Header */
       .header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        width: fit-content;
+        width: 100%;
         margin-bottom: 20px;
+        position: relative;
       }
 
-      h1 {
-        font-size: 28px;
-        margin: 0;
+      /* Global Points Counter: starts at 50%, but adjusts if necessary */
+      #globalPoints {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 22px;
+        font-weight: bold;
+        white-space: nowrap;
+        transition: all 0.2s ease;
       }
 
+      #globalPoints.over {
+        color: var(--error-color);
+      }
+
+      /* Runs & Add Button */
       #addRun {
         background: var(--accent);
         color: white;
@@ -91,24 +104,92 @@
         accent-color: var(--checkbox-color);
       }
 
-      .points {
+      .waffles {
         font-weight: bold;
         margin-left: 20px;
       }
 
-      #globalPoints {
-        font-size: 22px;
-        font-weight: bold;
-        padding-left: 370px;
+      #infoSection {
+        margin-top: 30px;
+        width: 100%;
+        max-width: 800px;
+        padding: 15px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--card-bg);
       }
 
-      #globalPoints small {
-        font-size: 14px;
-        font-weight: normal;
+      table {
+        border-collapse: collapse;
+        margin-bottom: 15px;
+        width: 100%;
       }
 
-      #globalPoints.over {
-        color: var(--error-color);
+      th {
+        width: 150px;
+      }
+
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 10px 25px;
+        text-align: center;
+      }
+
+      th {
+        background: #f0f0f0;
+      }
+
+      p {
+        margin: 5px 0;
+      }
+
+      /* Mobile Support */
+      @media (max-width: 768px) {
+        body {
+          padding: 20px;
+        }
+
+        h1 {
+          font-size: 22px;
+        }
+
+        #addRun {
+          padding: 8px 14px;
+          font-size: 13px;
+        }
+
+        .run {
+          padding: 10px;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        select {
+          padding: 6px 8px;
+          font-size: 12px;
+        }
+
+        input[type="checkbox"] {
+          width: 22px;
+          height: 22px;
+        }
+
+        #globalPoints {
+          font-size: 18px;
+          left: auto;
+          right: 10px; /* shifts to avoid blocking on small screens */
+          transform: none;
+        }
+
+        #infoSection {
+          padding: 10px;
+        }
+
+        th,
+        td {
+          padding: 6px 12px;
+        }
       }
     </style>
   </head>
@@ -120,6 +201,57 @@
     <button id="addRun">Add Run</button>
 
     <div id="runsContainer"></div>
+
+    <div id="infoSection">
+      <table>
+        <tr>
+          <th>Placement bonus (Epic win)</th>
+          <td>1</td>
+          <td>2</td>
+          <td>3</td>
+          <td>4</td>
+          <td>5-8</td>
+          <td>9-10</td>
+        </tr>
+        <tr>
+          <td>Waffles</td>
+          <td>5</td>
+          <td>4</td>
+          <td>3</td>
+          <td>2</td>
+          <td>1</td>
+          <td>0</td>
+        </tr>
+      </table>
+      <table style="margin-top: 20px">
+        <tr>
+          <th>Stage</th>
+          <td>1</td>
+          <td>2</td>
+          <td>3</td>
+          <td>4</td>
+          <td>5</td>
+        </tr>
+        <tr>
+          <td>Waffles</td>
+          <td>10</td>
+          <td>12</td>
+          <td>14</td>
+          <td>16</td>
+          <td>18</td>
+        </tr>
+      </table>
+      <p>
+        To use the website effectively, aim to reach the limit without exceeding
+        it (you can calculate this using the site). Then, start a new run and
+        try to win all five stages to earn the maximum number of waffles.
+      </p>
+      <p>
+        <strong>Important:</strong> Finishing in 5th–8th place still awards a
+        waffle, so you can use this strategically to gean 1-1 waffle to reach
+        the limit without going over.
+      </p>
+    </div>
 
     <script>
       const container = document.getElementById("runsContainer");
@@ -162,11 +294,11 @@
           toggleOne.checked = !dd.disabled;
           toggleOne.onchange = () => {
             dd.disabled = !toggleOne.checked;
-            updateAllPoints();
+            updateAllWaffles();
           };
           wrapper.appendChild(toggleOne);
 
-          dd.onchange = updateAllPoints;
+          dd.onchange = updateAllWaffles;
           dropdowns.push(dd);
           row.appendChild(wrapper);
         }
@@ -184,24 +316,24 @@
         });
         removeBtn.onclick = () => {
           row.remove();
-          updateAllPoints();
+          updateAllWaffles();
         };
         row.appendChild(removeBtn);
 
-        const pointsCounter = document.createElement("div");
-        pointsCounter.className = "points";
-        pointsCounter.textContent = "Waffles: 0";
-        row.appendChild(pointsCounter);
+        const wafflesCounter = document.createElement("div");
+        wafflesCounter.className = "waffles";
+        wafflesCounter.textContent = "Waffles: 0";
+        row.appendChild(wafflesCounter);
 
         container.appendChild(row);
-        updateAllPoints();
+        updateAllWaffles();
       }
 
-      function updateAllPoints() {
+      function updateAllWaffles() {
         let grandTotal = 0;
         const runs = container.querySelectorAll(".run");
         runs.forEach((r) => {
-          const pointsDiv = r.querySelector(".points");
+          const wafflesDiv = r.querySelector(".waffles");
           const dropdowns = Array.from(r.querySelectorAll("select"));
           let runTotal = 0;
           dropdowns.forEach((dd, idx) => {
@@ -211,7 +343,7 @@
               runTotal += base + valuePoints[placement - 1];
             }
           });
-          pointsDiv.textContent = "Waffles: " + runTotal;
+          wafflesDiv.textContent = "Waffles: " + runTotal;
           grandTotal += runTotal;
         });
         globalPointsCounter.innerHTML =
